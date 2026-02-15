@@ -1,0 +1,27 @@
+# Environment files
+.env
+*.env
+
+# Python cache
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary files
+temp_*.mp3
+temp_*.mp4
+temp_lecture.*
+debug_log.txt
+
+# Test files
+test_groq_gen.py
+debug_env.py
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

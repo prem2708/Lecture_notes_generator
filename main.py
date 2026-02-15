@@ -78,7 +78,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Configuration
-groq_api_key = os.getenv("GROQ_API_KEY")
+# Try to load from Streamlit secrets (for cloud deployment) first, then fall back to .env (for local)
+try:
+    groq_api_key = st.secrets["GROQ_API_KEY"]
+except (KeyError, FileNotFoundError):
+    groq_api_key = os.getenv("GROQ_API_KEY")
+
+if not groq_api_key:
+    st.error("⚠️ API key is missing. Please add GROQ_API_KEY to your Streamlit secrets (for cloud) or .env file (for local).")
+    st.info("For Streamlit Cloud: Add your API key in the app settings under 'Secrets'")
+    st.stop()
 
 # Main Area
 tab_upload, tab_url = st.tabs(["📂 Upload File", "🔗 URL Input"])

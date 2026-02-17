@@ -8,14 +8,13 @@ Transform your lecture recordings into clear notes, quizzes, and flashcards inst
 - 📚 **Study Notes**: Generate comprehensive, structured study notes
 - ❓ **Interactive Quiz**: Test your knowledge with auto-generated quizzes
 - 🃏 **Flashcards**: Create flashcards with flip animations for effective learning
-- 🔗 **URL Support**: Download and process lectures from YouTube and other platforms
 
 ## Tech Stack
 
 - **Frontend**: Streamlit
 - **STT**: Groq Whisper API
 - **LLM**: Groq LLaMA 3.3 70B
-- **Audio Processing**: yt-dlp, pydub, ffmpeg
+- **Audio Processing**:  pydub, ffmpeg
 
 ## Setup
 
@@ -44,7 +43,7 @@ Deploy to Streamlit Cloud:
 
 ## Usage
 
-1. Upload an audio/video file or enter a URL
+1. Upload an audio/video file
 2. Click "Generate Notes" to transcribe
 3. Use tabs to view:
    - Raw transcription

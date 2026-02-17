@@ -3,5 +3,4 @@ groq
 pydub
 python-dotenv
 watchdog
-yt-dlp
 httpx<0.28.0

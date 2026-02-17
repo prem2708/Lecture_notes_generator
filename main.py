@@ -108,14 +108,7 @@ if not groq_api_key:
     st.stop()
 
 # Main Area
-tab_upload, tab_url = st.tabs(["📂 Upload File", "🔗 URL Input"])
-
-with tab_upload:
-    uploaded_file = st.file_uploader("Upload Lecture Audio/Video (MP3, WAV, M4A, MP4)", type=["mp3", "wav", "m4a", "mp4"])
-
-with tab_url:
-    url_input = st.text_input("Enter Lecture URL (YouTube, etc.)")
-    process_url = st.button("Process URL")
+uploaded_file = st.file_uploader("Upload Lecture Audio/Video (MP3, WAV, M4A, MP4)", type=["mp3", "wav", "m4a", "mp4"])
 
 if not groq_api_key:
     st.error("API key is missing. Please add GROQ_API_KEY to your .env file.")
@@ -129,30 +122,6 @@ if uploaded_file:
     with open(temp_filename, "wb") as f:
         f.write(uploaded_file.getbuffer())
     st.session_state.current_file_path = temp_filename
-
-elif url_input and process_url:
-    status_text = st.empty()
-    progress_bar = st.progress(0)
-    
-    try:
-        status_text.text("⏳ Downloading Audio from URL... (This may take a moment)")
-        progress_bar.progress(10)
-        
-        from utils.download_engine import download_audio_from_url
-        temp_filename = download_audio_from_url(url_input, "temp_lecture")
-        
-        progress_bar.progress(100)
-        status_text.text("✅ Download Complete!")
-        
-        if temp_filename:
-            st.session_state.current_file_path = temp_filename
-        else:
-             st.error("Failed to download audio. Please check the URL.")
-             
-    except Exception as e:
-        st.error(f"❌ Error during download: {e}")
-        progress_bar.empty()
-        status_text.empty()
 
 # Display Audio and Transcription Button
 if 'current_file_path' in st.session_state and os.path.exists(st.session_state.current_file_path):

@@ -1,5 +1,7 @@
 # 🎓 Lecture Voice-to-Notes Generator
 
+- **Demo**: [https://lecture-notes-generator-6yjp.onrender.com](https://lecture-notes-generator-6yjp.onrender.com)
+
 Transform your lecture recordings into clear notes, quizzes, and flashcards instantly using AI.
 
 ## Features
@@ -59,3 +61,9 @@ Deploy to Streamlit Cloud:
 ## License
 
 MIT
+
+## Links
+
+- **Repository**: [https://github.com/prem2708/lecature_to_notes_with_youtube.git](https://github.com/prem2708/lecature_to_notes_with_youtube.git)
+- **For YouTube video notes**: [click here](https://github.com/prem2708/lecature_to_notes_with_youtube.git)
+

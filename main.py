@@ -78,15 +78,33 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Configuration
-# Try to load from Streamlit secrets (for cloud deployment) first, then fall back to .env (for local)
-try:
-    groq_api_key = st.secrets["GROQ_API_KEY"]
-except (KeyError, FileNotFoundError):
+# Load API key from Streamlit Cloud secrets or local .env file
+groq_api_key = None
+
+# Check if secrets.toml file exists to avoid FileNotFoundError
+secrets_file_paths = [
+    os.path.join(os.path.expanduser("~"), ".streamlit", "secrets.toml"),
+    os.path.join(os.getcwd(), ".streamlit", "secrets.toml")
+]
+
+secrets_exists = any(os.path.exists(path) for path in secrets_file_paths)
+
+if secrets_exists:
+    try:
+        # Try to load from Streamlit Cloud secrets
+        groq_api_key = st.secrets.get("GROQ_API_KEY", None)
+    except Exception:
+        # Fall back to .env file
+        pass
+
+# If not found in secrets, try .env file
+if not groq_api_key:
     groq_api_key = os.getenv("GROQ_API_KEY")
 
 if not groq_api_key:
-    st.error("⚠️ API key is missing. Please add GROQ_API_KEY to your Streamlit secrets (for cloud) or .env file (for local).")
-    st.info("For Streamlit Cloud: Add your API key in the app settings under 'Secrets'")
+    st.error("⚠️ GROQ_API_KEY not found!")
+    st.info("**For local development:** Add `GROQ_API_KEY=your_key` to your `.env` file")
+    st.info("**For Streamlit Cloud:** Add your API key in Settings → Secrets")
     st.stop()
 
 # Main Area
@@ -167,13 +185,68 @@ if 'transcription' in st.session_state:
     tab1, tab2, tab3, tab4 = st.tabs(["📝 Transcription", "📚 Study Notes", "❓ Quiz", "🃏 Flashcards"])
     
     with tab1:
-        st.subheader("Raw Transcription")
-        st.text_area("Transcript", st.session_state.transcription, height=300)
-        st.download_button("Download Transcript", st.session_state.transcription, file_name="transcript.txt")
+        st.subheader("📝 Transcription")
+        
+        # Format transcription for better readability
+        transcription_text = st.session_state.transcription
+        
+        # Add paragraph breaks for better readability (split long text into paragraphs)
+        sentences = transcription_text.split('. ')
+        formatted_paragraphs = []
+        temp_paragraph = []
+        
+        for i, sentence in enumerate(sentences):
+            temp_paragraph.append(sentence.strip())
+            # Create a new paragraph every 5 sentences for readability
+            if (i + 1) % 5 == 0 or i == len(sentences) - 1:
+                formatted_paragraphs.append('. '.join(temp_paragraph) + '.')
+                temp_paragraph = []
+        
+        formatted_transcription = '\n\n'.join(formatted_paragraphs)
+        
+        # Display in a scrollable container with styling
+        st.markdown("""
+        <style>
+        .transcription-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #212529;
+            white-space: pre-wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .transcription-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .transcription-box::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .transcription-box::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        .transcription-box::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Display transcription in the styled scrollable box
+        st.markdown(f'<div class="transcription-box">{formatted_transcription}</div>', unsafe_allow_html=True)
+        
+        st.markdown("")
+        st.download_button("📥 Download Transcript", st.session_state.transcription, file_name="transcript.txt", key="download_transcript")
 
     with tab2:
-        st.subheader("Study Notes")
-        if st.button("Generate/Refresh Notes"):
+        st.subheader("📚 Study Notes")
+        if st.button("Generate/Refresh Notes", key="generate_notes_button"):
             with st.spinner("Generating Notes... (Powered by Groq ✨)"):
                 try:
                     notes = generate_content(st.session_state.transcription, 'summary', groq_api_key)
@@ -183,12 +256,48 @@ if 'transcription' in st.session_state:
                     st.error(f"Failed to generate notes: {e}")
         
         if 'notes' in st.session_state:
-            st.markdown(st.session_state.notes)
-            st.download_button("Download Notes", st.session_state.notes, file_name="notes.md")
+            # Display notes in a scrollable container matching transcription style
+            st.markdown("""
+            <style>
+            .notes-box {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-left: 4px solid #667eea;
+                border-radius: 8px;
+                padding: 20px;
+                max-height: 600px;
+                overflow-y: auto;
+                font-size: 16px;
+                line-height: 1.8;
+                color: #212529;
+            }
+            .notes-box::-webkit-scrollbar {
+                width: 8px;
+            }
+            .notes-box::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+            .notes-box::-webkit-scrollbar-thumb {
+                background: #667eea;
+                border-radius: 4px;
+            }
+            .notes-box::-webkit-scrollbar-thumb:hover {
+                background: #5568d3;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Convert markdown to HTML for proper rendering in div
+            notes_html = st.session_state.notes.replace('\n', '<br>')
+            st.markdown(f'<div class="notes-box">{notes_html}</div>', unsafe_allow_html=True)
+            
+            st.markdown("")
+            st.download_button("📥 Download Notes", st.session_state.notes, file_name="notes.md", key="download_notes")
 
     with tab3:
         st.subheader("❓ Interactive Quiz")
-        if st.button("Generate/Refresh Quiz"):
+        if st.button("Generate/Refresh Quiz", key="generate_quiz_button"):
             with st.spinner("Generating Quiz..."):
                 try:
                     quiz_json = generate_content(st.session_state.transcription, 'quiz', groq_api_key)
@@ -277,14 +386,14 @@ if 'transcription' in st.session_state:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                if st.button("Retake Quiz"):
+                if st.button("Retake Quiz", key="retake_quiz_button"):
                     st.session_state.quiz_submitted = False
                     st.session_state.quiz_answers = {}
                     st.rerun()
 
     with tab4:
         st.subheader("🃏 Flashcards")
-        if st.button("Generate/Refresh Flashcards"):
+        if st.button("Generate/Refresh Flashcards", key="generate_flashcards_button"):
             with st.spinner("Generating Flashcards..."):
                 try:
                     flashcards_json = generate_content(st.session_state.transcription, 'flashcards', groq_api_key)
